@@ -75,3 +75,10 @@ def test_parse_price() -> None:
     for bad in ("claude", "=3,15", "claude=3", "claude=a,b", "claude=-1,2"):
         with pytest.raises(TraceError):
             parse_price(bad)
+
+
+def test_null_error_means_no_error(tmp_path: Path) -> None:
+    # Shopwright's export emits "error": null for steps that succeeded.
+    line = '{"trace_id": "a", "kind": "tool", "name": "x", "latency_ms": 1, "error": null}'
+    [step] = read_steps(write(tmp_path, [line]))
+    assert step.error is None
