@@ -1,0 +1,12 @@
+{"trace_id": "conv-1042", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1180, "input_tokens": 2410, "output_tokens": 96, "detail": {"stop_reason": "tool_use"}}
+{"trace_id": "conv-1042", "turn": 0, "kind": "tool", "name": "search_policies", "latency_ms": 42, "detail": {"query": "return window"}}
+{"trace_id": "conv-1042", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1630, "input_tokens": 3120, "output_tokens": 188, "detail": {"stop_reason": "end_turn"}}
+{"trace_id": "conv-1043", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 990, "input_tokens": 2380, "output_tokens": 71, "detail": {"stop_reason": "tool_use"}}
+{"trace_id": "conv-1043", "turn": 0, "kind": "tool", "name": "verify_customer", "latency_ms": 310, "detail": {"order": "#1043"}}
+{"trace_id": "conv-1043", "turn": 0, "kind": "tool", "name": "get_order", "latency_ms": 5000, "error": "Shopify did not respond in 5 s", "detail": {"order": "#1043"}}
+{"trace_id": "conv-1043", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1410, "input_tokens": 2950, "output_tokens": 120, "detail": {"stop_reason": "tool_use"}}
+{"trace_id": "conv-1043", "turn": 0, "kind": "tool", "name": "handoff", "latency_ms": 8, "detail": {"reason": "order lookup failed"}}
+{"trace_id": "conv-1044", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1050, "input_tokens": 2290, "output_tokens": 84, "detail": {"stop_reason": "tool_use"}}
+{"trace_id": "conv-1044", "turn": 0, "kind": "tool", "name": "search_products", "latency_ms": 55, "detail": {"query": "waterproof trail shoe"}}
+{"trace_id": "conv-1044", "turn": 0, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1720, "input_tokens": 3480, "output_tokens": 210, "detail": {"stop_reason": "end_turn"}}
+{"trace_id": "conv-1044", "turn": 1, "kind": "model", "name": "claude-sonnet-5-5", "latency_ms": 1240, "input_tokens": 3900, "output_tokens": 95, "detail": {"stop_reason": "end_turn"}}
