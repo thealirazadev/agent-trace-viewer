@@ -1,6 +1,6 @@
 [project]
 name = "agent-trace-viewer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Render agent traces (model calls, tool calls, tokens, latency, cost) from JSONL as a terminal summary or a self-contained HTML report."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,6 +16,7 @@ atv = "agent_trace_viewer.cli:main"
 dev = [
     "mypy>=1.13",
     "pytest>=8.3",
+    "pytest-cov==7.1.0",
     "ruff>=0.8",
 ]
 
@@ -38,5 +39,9 @@ strict = true
 files = ["src", "tests"]
 
 [tool.pytest.ini_options]
+addopts = "--cov=agent_trace_viewer --cov-report=term-missing:skip-covered"
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.coverage.report]
+fail_under = 95
