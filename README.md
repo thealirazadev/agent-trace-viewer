@@ -28,6 +28,19 @@ $ atv render examples/support-agent.jsonl -o report.html --title "Support agent 
 wrote report.html (3 traces)
 ```
 
+Find the slow or failing step across every run:
+
+```bash
+$ atv stats examples/support-agent.jsonl
+step                kind  calls    errors       p50       p95       max  tokens in  tokens out
+get_order           tool      1  1 (100%)  5,000 ms  5,000 ms  5,000 ms          0           0
+claude-sonnet-5-5  model      7         0  1,240 ms  1,720 ms  1,720 ms     20,530         864
+verify_customer     tool      1         0    310 ms    310 ms    310 ms          0           0
+...
+```
+
+Percentiles are nearest-rank, so every value shown is a latency that actually happened.
+
 `--price MODEL=IN,OUT` takes USD per million input and output tokens and can be repeated per
 model. Prices are never built in, because they change; without them the report shows tokens only.
 If a trace uses a model you did not price, its cost shows as `-` rather than a wrong total.
@@ -56,6 +69,21 @@ One JSON object per line:
 
 A malformed line stops the run with `file:line: reason`. A viewer that skipped bad lines would
 hide the failures it exists to show.
+
+### From OpenTelemetry
+
+`atv` reads OTLP/JSON trace exports directly: the OpenTelemetry Collector's file exporter output
+(one export per line) or a single pretty-printed export. Spans that follow the
+[GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) become steps:
+`gen_ai.operation.name` `chat` (or `text_completion`, `generate_content`) is a model call named
+by `gen_ai.response.model` or `gen_ai.request.model`, and `execute_tool` is a tool call named by
+`gen_ai.tool.name`. Tokens come from `gen_ai.usage.*`, latency from the span times, and an
+`ERROR` status becomes the step's error. Other spans (agent wrappers, HTTP, database) are
+skipped. Trace ids are shown as hex, whether the export wrote hex or base64.
+
+```bash
+atv summary examples/otel-export.json    # produced by the OpenTelemetry Python SDK
+```
 
 ### From Shopwright
 

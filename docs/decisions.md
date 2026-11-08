@@ -39,3 +39,10 @@ tokens only.
 
 The standard library covers JSON, HTML escaping, and argument parsing. Nothing to audit or
 upgrade.
+
+- **OpenTelemetry as the second input format.** It is the vendor-neutral way agent frameworks
+  export traces, and the GenAI conventions name exactly the fields `atv` needs. Only GenAI spans
+  become steps, so a full application trace stays readable. The format is detected from the
+  file, so there is no flag to forget.
+- **Nearest-rank percentiles.** With a handful of calls, interpolated percentiles invent
+  latencies that never happened; nearest-rank always reports a real one.
