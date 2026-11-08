@@ -1,6 +1,7 @@
 """Parse trace JSONL (docs/decisions.md, decision 1) and summarise each trace."""
 
 import json
+import math
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -130,6 +131,51 @@ def summarise(steps: Iterable[Step], prices: Mapping[str, Price] | None = None) 
         for summary in by_trace.values():
             summary.cost_usd = trace_cost(summary.steps, prices)
     return list(by_trace.values())
+
+
+@dataclass(frozen=True)
+class StepStats:
+    kind: str
+    name: str
+    calls: int
+    errors: int
+    p50_ms: int
+    p95_ms: int
+    max_ms: int
+    input_tokens: int
+    output_tokens: int
+
+
+def percentile(sorted_values: list[int], fraction: float) -> int:
+    """Nearest-rank percentile: a value that actually occurred, never an interpolation."""
+    if not sorted_values:
+        return 0
+    rank = max(1, math.ceil(fraction * len(sorted_values)))
+    return sorted_values[rank - 1]
+
+
+def step_stats(steps: Iterable[Step]) -> list[StepStats]:
+    """Per model and tool name across every trace, slowest p95 first."""
+    groups: dict[tuple[str, str], list[Step]] = {}
+    for step in steps:
+        groups.setdefault((step.kind, step.name), []).append(step)
+    stats = []
+    for (kind, name), group in groups.items():
+        latencies = sorted(s.latency_ms for s in group)
+        stats.append(
+            StepStats(
+                kind,
+                name,
+                len(group),
+                sum(s.error is not None for s in group),
+                percentile(latencies, 0.5),
+                percentile(latencies, 0.95),
+                latencies[-1],
+                sum(s.input_tokens for s in group),
+                sum(s.output_tokens for s in group),
+            )
+        )
+    return sorted(stats, key=lambda s: (-s.p95_ms, s.kind, s.name))
 
 
 def trace_cost(steps: Iterable[Step], prices: Mapping[str, Price]) -> Decimal | None:

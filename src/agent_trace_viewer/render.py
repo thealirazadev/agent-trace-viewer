@@ -1,10 +1,11 @@
 """Render summaries as a terminal table or one self-contained HTML file (no JS, no network)."""
 
 import json
+from collections.abc import Sequence
 from decimal import Decimal
 from html import escape
 
-from agent_trace_viewer.traces import Summary
+from agent_trace_viewer.traces import StepStats, Summary
 
 
 def _cost(value: Decimal | None) -> str:
@@ -13,6 +14,36 @@ def _cost(value: Decimal | None) -> str:
 
 def _plural(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
+def _columns(header: tuple[str, ...], rows: Sequence[tuple[str, ...]]) -> str:
+    widths = [max(len(r[i]) for r in [header, *rows]) for i in range(len(header))]
+
+    def line(cells: tuple[str, ...]) -> str:
+        first = cells[0].ljust(widths[0])
+        rest = (c.rjust(w) for c, w in zip(cells[1:], widths[1:], strict=True))
+        return "  ".join([first, *rest]).rstrip()
+
+    return "\n".join([line(header), *(line(r) for r in rows)])
+
+
+def stats_table(stats: list[StepStats]) -> str:
+    header = ("step", "kind", "calls", "errors", "p50", "p95", "max", "tokens in", "tokens out")
+    rows = [
+        (
+            s.name,
+            s.kind,
+            str(s.calls),
+            f"{s.errors} ({100 * s.errors / s.calls:.0f}%)" if s.errors else "0",
+            f"{s.p50_ms:,} ms",
+            f"{s.p95_ms:,} ms",
+            f"{s.max_ms:,} ms",
+            f"{s.input_tokens:,}",
+            f"{s.output_tokens:,}",
+        )
+        for s in stats
+    ]
+    return _columns(header, rows)
 
 
 def table(summaries: list[Summary]) -> str:
@@ -30,14 +61,7 @@ def table(summaries: list[Summary]) -> str:
         )
         for s in summaries
     ]
-    widths = [max(len(r[i]) for r in [header, *rows]) for i in range(len(header))]
-
-    def line(cells: tuple[str, ...]) -> str:
-        first = cells[0].ljust(widths[0])
-        rest = (c.rjust(w) for c, w in zip(cells[1:], widths[1:], strict=True))
-        return "  ".join([first, *rest]).rstrip()
-
-    return "\n".join([line(header), *(line(r) for r in rows)])
+    return _columns(header, rows)
 
 
 STYLE = """
