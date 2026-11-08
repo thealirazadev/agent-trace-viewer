@@ -92,18 +92,25 @@ def parse_step(raw: Any) -> Step:
 
 
 def read_steps(path: Path) -> list[Step]:
-    """Every step in the file, in order. A bad line fails with ``path:line: reason``."""
+    """Every step in the file, in order. A bad line fails with ``path:line: reason``.
+
+    OpenTelemetry OTLP/JSON exports are detected and read with ``otel.read_otlp``.
+    """
+    text = path.read_text(encoding="utf-8")
+    from agent_trace_viewer import otel  # imports Step from here
+
+    if otel.looks_like_otlp(text):
+        return otel.read_otlp(path, text)
     steps = []
-    with path.open(encoding="utf-8") as handle:
-        for number, line in enumerate(handle, start=1):
-            if not line.strip():
-                continue
-            try:
-                steps.append(parse_step(json.loads(line)))
-            except json.JSONDecodeError as exc:
-                raise TraceError(f"{path}:{number}: invalid JSON ({exc.msg})") from exc
-            except TraceError as exc:
-                raise TraceError(f"{path}:{number}: {exc}") from exc
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            steps.append(parse_step(json.loads(line)))
+        except json.JSONDecodeError as exc:
+            raise TraceError(f"{path}:{number}: invalid JSON ({exc.msg})") from exc
+        except TraceError as exc:
+            raise TraceError(f"{path}:{number}: {exc}") from exc
     return steps
 
 
