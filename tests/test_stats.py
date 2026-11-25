@@ -37,3 +37,13 @@ def test_the_stats_command(capsys: pytest.CaptureFixture[str]) -> None:
     lines = capsys.readouterr().out.splitlines()
     assert lines[0].split()[:4] == ["step", "kind", "calls", "errors"]
     assert lines[1].startswith("get_order") and "1 (100%)" in lines[1]
+
+
+def test_stats_with_equal_p95_sort_by_kind_then_name() -> None:
+    steps = [step("search", 10), step("fetch", 10), step("llm", 10, kind="model")]
+
+    assert [(s.kind, s.name) for s in step_stats(steps)] == [
+        ("model", "llm"),
+        ("tool", "fetch"),
+        ("tool", "search"),
+    ]

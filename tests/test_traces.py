@@ -54,6 +54,7 @@ def test_cost_needs_a_price_for_every_model(tmp_path: Path) -> None:
         ('{"kind": "tool", "name": "x", "latency_ms": 1}', "'trace_id'"),
         ('{"trace_id": "a", "kind": "tool", "name": "", "latency_ms": 1}', "'name'"),
         ('{"trace_id": "a", "kind": "tool", "name": "x", "latency_ms": 1, "detail": 3}', "detail"),
+        ('{"trace_id": "a", "kind": "tool", "name": "x", "latency_ms": 1, "error": 5}', "'error'"),
     ],
 )
 def test_bad_lines_fail_with_their_line_number(tmp_path: Path, line: str, reason: str) -> None:
@@ -90,3 +91,10 @@ def test_null_error_means_no_error(tmp_path: Path) -> None:
     line = '{"trace_id": "a", "kind": "tool", "name": "x", "latency_ms": 1, "error": null}'
     [step] = read_steps(write(tmp_path, [line]))
     assert step.error is None
+
+
+def test_empty_error_means_no_error(tmp_path: Path) -> None:
+    line = '{"trace_id": "a", "kind": "tool", "name": "x", "latency_ms": 1, "error": ""}'
+    [step] = read_steps(write(tmp_path, [line]))
+    assert step.error is None
+    assert summarise([step])[0].errors == 0
