@@ -88,16 +88,21 @@ atv summary examples/otel-export.json    # produced by the OpenTelemetry Python 
 ### From Shopwright
 
 [Shopwright](https://github.com/thealirazadev/shopwright) stores traces in Postgres with the same
-fields, so exporting a store's recent conversations is one query:
+fields, so exporting a store's recent conversations is one query. Shopwright names a model step
+by its stop reason (`tool_use`, `end_turn`), not by the model, so the query puts the model id in
+`name` (replace `claude-sonnet-5-5` with your `AGENT_MODEL`, so `--price` and `atv stats` match
+it) and keeps the stop reason in `detail`:
 
 ```bash
 psql "$DATABASE_URL" -At -c "
   SELECT json_build_object('trace_id', conversation_id, 'turn', turn, 'kind', kind,
-    'name', name, 'latency_ms', latency_ms, 'input_tokens', input_tokens,
-    'output_tokens', output_tokens, 'detail', detail,
+    'name', CASE kind WHEN 'model' THEN 'claude-sonnet-5-5' ELSE name END,
+    'latency_ms', latency_ms, 'input_tokens', input_tokens, 'output_tokens', output_tokens,
+    'detail', CASE kind WHEN 'model'
+      THEN detail || jsonb_build_object('stop_reason', name) ELSE detail END,
     'error', NULLIF(NULLIF(detail->>'error', 'false'), ''))
   FROM traces WHERE created_at > now() - interval '1 day' ORDER BY id" > traces.jsonl
-atv render traces.jsonl -o report.html
+atv --price claude-sonnet-5-5=3,15 render traces.jsonl -o report.html
 ```
 
 ### From your own agent

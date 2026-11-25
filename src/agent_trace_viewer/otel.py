@@ -53,19 +53,28 @@ def _attributes(span: Mapping[str, Any]) -> dict[str, Any]:
     return {a["key"]: _value(a.get("value", {})) for a in span.get("attributes", []) if "key" in a}
 
 
+def _export(value: Any, where: str) -> Mapping[str, Any]:
+    if not isinstance(value, dict):
+        raise TraceError(f"{where}: an OTLP export must be a JSON object")
+    return value
+
+
 def _requests(text: str, path: Path) -> Iterator[Mapping[str, Any]]:
     stripped = text.strip()
     try:
-        yield json.loads(stripped)
-        return
+        whole = json.loads(stripped)
     except json.JSONDecodeError:
         pass
+    else:
+        yield _export(whole, str(path))
+        return
     for number, line in enumerate(text.splitlines(), start=1):
         if line.strip():
             try:
-                yield json.loads(line)
+                request = json.loads(line)
             except json.JSONDecodeError as exc:
                 raise TraceError(f"{path}:{number}: invalid JSON ({exc.msg})") from exc
+            yield _export(request, f"{path}:{number}")
 
 
 def _tokens(attrs: Mapping[str, Any], key: str) -> int:
