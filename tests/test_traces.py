@@ -72,7 +72,15 @@ def test_numeric_trace_ids_are_accepted(tmp_path: Path) -> None:
 
 def test_parse_price() -> None:
     assert parse_price("claude=3,15") == ("claude", Price(Decimal(3), Decimal(15)))
-    for bad in ("claude", "=3,15", "claude=3", "claude=a,b", "claude=-1,2"):
+    for bad in (
+        "claude",
+        "=3,15",
+        "claude=3",
+        "claude=a,b",
+        "claude=-1,2",
+        "claude=nan,1",
+        "claude=3,inf",
+    ):
         with pytest.raises(TraceError):
             parse_price(bad)
 

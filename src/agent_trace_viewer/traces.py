@@ -200,6 +200,8 @@ def parse_price(text: str) -> tuple[str, Price]:
         price = Price(Decimal(parts[0]), Decimal(parts[1]))
     except ArithmeticError as exc:
         raise TraceError(f"price '{text}' has a rate that is not a number") from exc
+    if not (price.input.is_finite() and price.output.is_finite()):
+        raise TraceError(f"price '{text}' has a rate that is not a number")
     if price.input < 0 or price.output < 0:
         raise TraceError(f"price '{text}' has a negative rate")
     return model, price

@@ -107,6 +107,11 @@ def test_bad_otlp_input_is_reported(tmp_path: Path) -> None:
     with pytest.raises(TraceError, match="timestamps"):
         read_steps(no_time)
 
+    not_an_object = tmp_path / "list.jsonl"
+    not_an_object.write_text(export() + '\n["resourceSpans"]\n')
+    with pytest.raises(TraceError, match=r"list\.jsonl:2: an OTLP export must be a JSON object"):
+        read_steps(not_an_object)
+
 
 def test_trace_ids_are_shown_as_hex() -> None:
     assert trace_hex("AB" * 16) == "ab" * 16
