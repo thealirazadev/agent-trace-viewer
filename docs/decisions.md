@@ -16,7 +16,8 @@ A trace is the list of steps one agent run took. Each line is one step:
 | `detail` | object | no | Anything else (tool input, stop reason); shown as JSON |
 
 JSONL streams, appends, and greps well, and every agent framework can write it. Shopwright's
-`traces` table has these columns already, so its export is one SQL query (see README).
+`traces` table has these columns already, so its export is one SQL query (see README); that query
+swaps in the model id for model steps, which Shopwright names by stop reason.
 
 ## 2. Static HTML, no server
 
